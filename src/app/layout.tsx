@@ -12,13 +12,13 @@ const geistMono = Geist_Mono({
   subsets: ["latin"],
 });
 
-const siteUrl = process.env.NEXT_PUBLIC_APP_URL || "https://askyourcrush.app";
+const siteUrl = process.env.NEXT_PUBLIC_APP_URL || "https://askyourcrush.com";
 
 export const metadata: Metadata = {
   metadataBase: new URL(siteUrl),
   title: {
-    default: "Ask Your Crush 💘 | Valentine's Invite Generator",
-    template: "%s | Ask Your Crush 💘",
+    default: "Ask Your Crush",
+    template: "%s | Ask Your Crush",
   },
   description:
     "Create a cute Valentine's invite link, share it with your crush, and find out if they feel the same way! Free, fun, and anonymous. Sana all may jowa! 💕",
@@ -37,9 +37,9 @@ export const metadata: Metadata = {
   authors: [{ name: "Ask Your Crush" }],
   creator: "Ask Your Crush",
   openGraph: {
-    title: "Ask Your Crush 💘 | Valentine's Invite Generator",
+    title: "Ask Your Crush",
     description:
-      "Create a cute Valentine's invite link and find out if your crush feels the same way! 💕",
+      "Create a cute Valentine's invite link and find out if your crush feels the same way!",
     url: siteUrl,
     siteName: "Ask Your Crush",
     images: [
@@ -55,9 +55,9 @@ export const metadata: Metadata = {
   },
   twitter: {
     card: "summary_large_image",
-    title: "Ask Your Crush 💘 | Valentine's Invite Generator",
+    title: "Ask Your Crush",
     description:
-      "Create a cute Valentine's invite link and find out if your crush feels the same way! 💕",
+      "Create a cute Valentine's invite link and find out if your crush feels the same way!",
     images: ["/ask-your-crush.png"],
   },
   robots: {

@@ -1,7 +1,12 @@
 "use client";
 
 import { useState } from "react";
-import { themes, ThemeKey, templateMessages } from "@/lib/themes";
+import {
+  themes,
+  ThemeKey,
+  templateMessages,
+  sampleMessages,
+} from "@/lib/themes";
 import Link from "next/link";
 import Balloons from "@/components/Balloons";
 
@@ -20,6 +25,7 @@ export default function CreatePage() {
   } | null>(null);
   const [error, setError] = useState("");
   const [copied, setCopied] = useState<string | null>(null);
+  const [showMessagePicker, setShowMessagePicker] = useState(false);
 
   const handleTemplateSelect = (templateTheme: ThemeKey) => {
     setTheme(templateTheme);
@@ -203,9 +209,51 @@ export default function CreatePage() {
 
           {/* Message */}
           <div>
-            <label className="block text-xs uppercase tracking-wider text-[#c49aa3] mb-2">
-              Your message
-            </label>
+            <div className="flex items-center justify-between mb-2">
+              <label className="block text-xs uppercase tracking-wider text-[#c49aa3]">
+                Your message
+              </label>
+              <button
+                type="button"
+                onClick={() => setShowMessagePicker(!showMessagePicker)}
+                className="text-xs text-[#e53e5f] hover:text-[#d63555] transition-colors flex items-center gap-1"
+              >
+                <span>✨</span>
+                {showMessagePicker ? "Hide suggestions" : "Need inspiration?"}
+              </button>
+            </div>
+
+            {/* Message Picker */}
+            {showMessagePicker && (
+              <div className="mb-3 p-4 bg-white/80 border border-[#f9a8d4] rounded-lg space-y-2">
+                <p className="text-xs text-[#c49aa3] mb-3">
+                  Pick a message for the{" "}
+                  <span className="font-medium">{themes[theme].name}</span>{" "}
+                  vibe:
+                </p>
+                {sampleMessages[theme].map((sampleMsg, index) => (
+                  <button
+                    key={index}
+                    type="button"
+                    onClick={() => {
+                      setMessage(sampleMsg);
+                      setShowMessagePicker(false);
+                    }}
+                    className={`w-full text-left p-3 rounded-lg text-sm transition-all ${
+                      message === sampleMsg
+                        ? "bg-[#e53e5f] text-white"
+                        : "bg-[#FFF0F3] text-[#7a5a63] hover:bg-[#f9a8d4]/30 border border-[#f5d0d8]"
+                    }`}
+                  >
+                    {sampleMsg.replace(
+                      /\{\{name\}\}/g,
+                      recipientName || "[name]",
+                    )}
+                  </button>
+                ))}
+              </div>
+            )}
+
             <textarea
               value={message}
               onChange={(e) => setMessage(e.target.value)}

@@ -38,3 +38,22 @@ export const templateMessages = {
   fun: `Roses are red, violets are blue, I made this page just to ask you out 👀`,
   minimal: `No pressure, just vibes—want to grab coffee this Valentine's?`,
 } as const;
+
+// Sample messages for each theme that users can pick from
+export const sampleMessages: Record<ThemeKey, string[]> = {
+  romantic: [
+    `Hey {{name}}, I've been meaning to ask… would you like to go on a date with me this Valentine's? 💖`,
+    `{{name}}, every moment with you feels like magic. Would you be my Valentine? 🌹`,
+    `I don't need a reason to smile when I'm with you, {{name}}. Be my Valentine? 💕`,
+  ],
+  fun: [
+    `Roses are red, violets are blue, I made this page just to ask you out 👀`,
+    `Hey {{name}}! Are you a magician? Because whenever I look at you, everyone else disappears. Valentine's date? 🎩✨`,
+    `{{name}}, I'm not a photographer, but I can picture us together this Valentine's! 📸😜`,
+  ],
+  minimal: [
+    `No pressure, just vibes—want to grab coffee this Valentine's?`,
+    `{{name}}, simple question: Valentine's date? ☕`,
+    `Hey {{name}}. February 14. You and me. What do you think?`,
+  ],
+};

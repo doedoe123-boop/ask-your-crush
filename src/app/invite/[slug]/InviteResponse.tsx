@@ -216,7 +216,7 @@ export default function InviteResponse({
           <form onSubmit={handleEmailSubmit} className="space-y-4">
             <div>
               <label className="block text-[#7a5a63] text-sm mb-2">
-                Your email <span className="text-[#c49aa3]">(optional)</span>
+                Your email
               </label>
               <input
                 type="email"

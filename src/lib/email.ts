@@ -1,11 +1,16 @@
-import Brevo from "@getbrevo/brevo";
+import nodemailer from "nodemailer";
 import { generateGoogleCalendarUrl } from "@/lib/calendar";
 
-const apiInstance = new Brevo.TransactionalEmailsApi();
-apiInstance.setApiKey(
-  Brevo.TransactionalEmailsApiApiKeys.apiKey,
-  process.env.BREVO_API_KEY || "",
-);
+// Create reusable transporter
+const transporter = nodemailer.createTransport({
+  host: process.env.SMTP_HOST || "smtp.hostinger.com",
+  port: parseInt(process.env.SMTP_PORT || "465"),
+  secure: true, // true for 465, false for other ports
+  auth: {
+    user: process.env.SMTP_USER,
+    pass: process.env.SMTP_PASS,
+  },
+});
 
 interface SendResponseEmailParams {
   to: string;
@@ -49,29 +54,37 @@ function buildEmailHtml(
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
 </head>
-<body style="margin: 0; padding: 0; background-color: #FFF8F0; font-family: Georgia, serif;">
-  <div style="max-width: 480px; margin: 0 auto; padding: 48px 24px;">
-    <p style="color: #999; font-size: 14px; margin: 0 0 8px 0;">${escapeHtml(subheading)}</p>
-    <h1 style="color: #1a1a1a; font-size: 28px; font-weight: normal; margin: 0 0 24px 0;">
-      ${escapeHtml(heading)}
-    </h1>
-    
-    <p style="color: #666; font-size: 16px; line-height: 1.6; margin: 0 0 32px 0;">
-      ${escapeHtml(bodyText)}
-    </p>
-    
-    <div style="background: white; border: 1px solid #e5e5e5; border-radius: 8px; padding: 24px; margin-bottom: 32px;">
-      <p style="color: #999; font-size: 12px; text-transform: uppercase; letter-spacing: 1px; margin: 0 0 8px 0;">
-        The response
+<body style="margin: 0; padding: 0; background-color: #FFF0F3; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;">
+  <div style="max-width: 500px; margin: 0 auto; padding: 40px 20px;">
+    <div style="background: white; border-radius: 16px; padding: 32px; box-shadow: 0 4px 20px rgba(229, 62, 95, 0.1);">
+      <div style="text-align: center; margin-bottom: 24px;">
+        <span style="font-size: 48px;">💌</span>
+      </div>
+      
+      <p style="color: #c49aa3; font-size: 12px; text-transform: uppercase; letter-spacing: 1px; margin: 0 0 8px 0; text-align: center;">${escapeHtml(subheading)}</p>
+      <h1 style="font-family: Georgia, serif; color: #2d2d2d; font-size: 24px; font-weight: normal; margin: 0 0 20px 0; text-align: center;">
+        ${escapeHtml(heading)}
+      </h1>
+      
+      <p style="color: #7a5a63; font-size: 15px; line-height: 1.6; margin: 0 0 28px 0; text-align: center;">
+        ${escapeHtml(bodyText)}
       </p>
-      <p style="color: #1a1a1a; font-size: 24px; margin: 0;">${escapeHtml(responseText)}</p>
+      
+      <div style="background: #FFF0F3; border: 1px solid #f5d0d8; border-radius: 12px; padding: 20px; margin-bottom: 28px; text-align: center;">
+        <p style="color: #c49aa3; font-size: 11px; text-transform: uppercase; letter-spacing: 1px; margin: 0 0 8px 0;">
+          The response
+        </p>
+        <p style="color: #e53e5f; font-size: 28px; font-weight: 600; margin: 0;">${escapeHtml(responseText)}</p>
+      </div>
+      
+      ${calendarSection || ""}
+      
+      <div style="text-align: center; padding-top: 24px; border-top: 1px solid #f5d0d8; margin-top: 28px;">
+        <p style="color: #ddb8c0; font-size: 12px; margin: 0;">
+          Sent with 💕 from Ask Your Crush${safeSender ? ` • Created by ${safeSender}` : ""}
+        </p>
+      </div>
     </div>
-    
-    ${calendarSection || ""}
-    
-    <p style="color: #ccc; font-size: 12px; margin-top: 48px;">
-      Sent from Ask Your Crush${safeSender ? ` • Created by ${safeSender}` : ""}
-    </p>
   </div>
 </body>
 </html>`;
@@ -206,32 +219,31 @@ export async function sendResponseEmail({
   eventTitle,
   recipientEmail,
 }: SendResponseEmailParams): Promise<boolean> {
-  if (!process.env.BREVO_API_KEY) {
-    console.log("BREVO_API_KEY not set, skipping email");
+  if (!process.env.SMTP_USER || !process.env.SMTP_PASS) {
+    console.log("SMTP credentials not set, skipping email");
     return false;
   }
 
   const template = emailTemplates[response];
 
-  const sendSmtpEmail = new Brevo.SendSmtpEmail();
-  sendSmtpEmail.subject = template.subject;
-  sendSmtpEmail.htmlContent = template.getContent(
-    senderName,
-    recipientName,
-    resultUrl,
-    eventDate,
-    eventTime,
-    eventTitle,
-    recipientEmail,
-  );
-  sendSmtpEmail.sender = {
-    name: "Ask Your Crush",
-    email: process.env.BREVO_SENDER_EMAIL || "noreply@example.com",
-  };
-  sendSmtpEmail.to = [{ email: to }];
-
   try {
-    await apiInstance.sendTransacEmail(sendSmtpEmail);
+    await transporter.sendMail({
+      from: {
+        name: "Ask Your Crush",
+        address: process.env.SMTP_FROM || process.env.SMTP_USER || "",
+      },
+      to: to,
+      subject: template.subject,
+      html: template.getContent(
+        senderName,
+        recipientName,
+        resultUrl,
+        eventDate,
+        eventTime,
+        eventTitle,
+        recipientEmail,
+      ),
+    });
     console.log(`Email sent successfully to ${to}`);
     return true;
   } catch (error) {
@@ -255,8 +267,8 @@ export async function sendRecipientConfirmationEmail({
   eventDate,
   eventTime,
 }: SendRecipientConfirmationParams): Promise<boolean> {
-  if (!process.env.BREVO_API_KEY) {
-    console.log("BREVO_API_KEY not set, skipping email");
+  if (!process.env.SMTP_USER || !process.env.SMTP_PASS) {
+    console.log("SMTP credentials not set, skipping email");
     return false;
   }
 
@@ -337,17 +349,16 @@ export async function sendRecipientConfirmationEmail({
     </html>
   `;
 
-  const sendSmtpEmail = new Brevo.SendSmtpEmail();
-  sendSmtpEmail.subject = `💕 It's official! You said yes to ${safeSenderName}`;
-  sendSmtpEmail.htmlContent = htmlContent;
-  sendSmtpEmail.sender = {
-    name: "Ask Your Crush",
-    email: process.env.BREVO_SENDER_EMAIL || "noreply@example.com",
-  };
-  sendSmtpEmail.to = [{ email: to }];
-
   try {
-    await apiInstance.sendTransacEmail(sendSmtpEmail);
+    await transporter.sendMail({
+      from: {
+        name: "Ask Your Crush",
+        address: process.env.SMTP_FROM || process.env.SMTP_USER || "",
+      },
+      to: to,
+      subject: `💕 It's official! You said yes to ${safeSenderName}`,
+      html: htmlContent,
+    });
     console.log(`Recipient confirmation email sent to ${to}`);
     return true;
   } catch (error) {
