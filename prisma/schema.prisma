@@ -1,0 +1,27 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+generator client {
+  provider = "prisma-client"
+  output   = "../src/generated/prisma"
+}
+
+datasource db {
+  provider = "postgresql"
+}
+
+model ValentineInvite {
+  id            String    @id @default(cuid())
+  slug          String    @unique
+  message       String
+  theme         String    @default("romantic")
+  senderName    String?
+  senderEmail   String?
+  recipientName String?
+  eventDate     String?   // Date for the Valentine's date (YYYY-MM-DD)
+  eventTime     String?   // Time for the Valentine's date (HH:MM)
+  eventTitle    String?   // Custom event title
+  response      String?   // "yes" | "maybe" | "no" | null
+  respondedAt   DateTime?
+  createdAt     DateTime  @default(now())
+}
