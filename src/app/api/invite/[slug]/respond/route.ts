@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
-import { sendResponseEmail } from "@/lib/email";
+import { sendResponseEmail, sendRecipientConfirmationEmail } from "@/lib/email";
 
 interface RouteParams {
   params: Promise<{ slug: string }>;
@@ -10,7 +10,7 @@ export async function POST(request: NextRequest, { params }: RouteParams) {
   try {
     const { slug } = await params;
     const body = await request.json();
-    const { response } = body;
+    const { response, recipientEmail } = body;
 
     // Validate response
     const validResponses = ["yes", "maybe", "no"];
@@ -47,18 +47,32 @@ export async function POST(request: NextRequest, { params }: RouteParams) {
       },
     });
 
-    // Send email notification if sender provided an email
-    if (invite.senderEmail) {
-      const baseUrl =
-        process.env.NEXT_PUBLIC_APP_URL || "http://localhost:3000";
-      const resultUrl = `${baseUrl}/invite/${slug}/result`;
+    const baseUrl = process.env.NEXT_PUBLIC_APP_URL || "http://localhost:3000";
+    const resultUrl = `${baseUrl}/invite/${slug}/result`;
 
+    // Send email notification to sender if they provided an email
+    if (invite.senderEmail) {
       await sendResponseEmail({
         to: invite.senderEmail,
         senderName: invite.senderName,
         recipientName: invite.recipientName,
         response: response as "yes" | "maybe" | "no",
         resultUrl,
+        eventDate: invite.eventDate,
+        eventTime: invite.eventTime,
+        eventTitle: invite.eventTitle,
+        recipientEmail: recipientEmail || undefined, // Include crush's email so sender can invite them
+      });
+    }
+
+    // Send simple confirmation email to recipient (sender will create the calendar invite)
+    if (recipientEmail && response === "yes") {
+      await sendRecipientConfirmationEmail({
+        to: recipientEmail,
+        senderName: invite.senderName ?? "Someone special",
+        recipientName: invite.recipientName ?? "Valentine",
+        eventDate: invite.eventDate ?? undefined,
+        eventTime: invite.eventTime ?? undefined,
       });
     }
 

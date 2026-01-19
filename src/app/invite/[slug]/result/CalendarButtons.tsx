@@ -70,40 +70,40 @@ export default function CalendarButtons({
     : null;
 
   return (
-    <div className="border border-[#e5e5e5] rounded-lg p-4 mb-6">
-      <p className="text-sm text-[#999] mb-1">the date</p>
-      <p className="text-[#1a1a1a] font-medium">
+    <div className="border border-[#f5d0d8] rounded-lg p-4 mb-6">
+      <p className="text-sm text-[#c49aa3] mb-1">the date</p>
+      <p className="text-[#2d2d2d] font-medium">
         {formattedDate}
         {formattedTime && (
-          <span className="text-[#666]"> at {formattedTime}</span>
+          <span className="text-[#7a5a63]"> at {formattedTime}</span>
         )}
       </p>
 
       <div className="mt-4 relative">
         <button
           onClick={() => setShowOptions(!showOptions)}
-          className="w-full bg-[#1a1a1a] text-white py-3 rounded-lg font-medium hover:bg-[#333] transition-colors"
+          className="w-full bg-[#e53e5f] text-white py-3 rounded-lg font-medium hover:bg-[#d63555] transition-colors"
         >
           Add to calendar
         </button>
 
         {showOptions && (
-          <div className="absolute bottom-full left-0 right-0 mb-2 bg-white border border-[#e5e5e5] rounded-lg shadow-lg overflow-hidden">
+          <div className="absolute bottom-full left-0 right-0 mb-2 bg-white border border-[#f5d0d8] rounded-lg shadow-lg overflow-hidden">
             <button
               onClick={handleGoogleCalendar}
-              className="w-full px-4 py-3 text-left text-[#1a1a1a] hover:bg-[#f5f5f5] transition-colors border-b border-[#e5e5e5]"
+              className="w-full px-4 py-3 text-left text-[#2d2d2d] hover:bg-[#FFF0F3] transition-colors border-b border-[#f5d0d8]"
             >
               Google Calendar
             </button>
             <button
               onClick={handleOutlook}
-              className="w-full px-4 py-3 text-left text-[#1a1a1a] hover:bg-[#f5f5f5] transition-colors border-b border-[#e5e5e5]"
+              className="w-full px-4 py-3 text-left text-[#2d2d2d] hover:bg-[#FFF0F3] transition-colors border-b border-[#f5d0d8]"
             >
               Outlook
             </button>
             <button
               onClick={handleDownloadICS}
-              className="w-full px-4 py-3 text-left text-[#1a1a1a] hover:bg-[#f5f5f5] transition-colors"
+              className="w-full px-4 py-3 text-left text-[#2d2d2d] hover:bg-[#FFF0F3] transition-colors"
             >
               Download .ics (Apple, others)
             </button>

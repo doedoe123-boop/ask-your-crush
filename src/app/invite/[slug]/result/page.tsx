@@ -45,25 +45,25 @@ export default async function ResultPage({ params }: PageProps) {
   };
 
   return (
-    <div className="min-h-screen bg-[#FFF8F0]">
+    <div className="min-h-screen bg-[#FFF0F3]">
       <div className="max-w-md mx-auto px-6 py-16">
         <Link
           href="/"
-          className="text-[#999] text-sm hover:text-[#666] transition-colors"
+          className="text-[#c49aa3] text-sm hover:text-[#b07d8a] transition-colors"
         >
           ← back home
         </Link>
 
         <div className="mt-12">
-          <p className="text-[#999] text-sm mb-2">
+          <p className="text-[#c49aa3] text-sm mb-2">
             invite to {invite.recipientName || "someone special"}
           </p>
 
-          <h1 className="text-3xl font-serif text-[#1a1a1a] mb-4">
+          <h1 className="text-3xl font-serif text-[#2d2d2d] mb-4">
             {getResponseTitle()}
           </h1>
 
-          <p className="text-[#666] mb-8">{getResponseDescription()}</p>
+          <p className="text-[#7a5a63] mb-8">{getResponseDescription()}</p>
 
           {/* Calendar buttons - show when response is yes and there's a date */}
           {invite.response === "yes" && invite.eventDate && (
@@ -77,8 +77,8 @@ export default async function ResultPage({ params }: PageProps) {
           )}
 
           {invite.response && invite.respondedAt && (
-            <div className="border-t border-[#e5e5e5] py-6 mb-6">
-              <p className="text-sm text-[#999]">
+            <div className="border-t border-[#f5d0d8] py-6 mb-6">
+              <p className="text-sm text-[#c49aa3]">
                 Answered on{" "}
                 {new Date(invite.respondedAt).toLocaleDateString("en-US", {
                   month: "long",
@@ -90,9 +90,9 @@ export default async function ResultPage({ params }: PageProps) {
           )}
 
           {!invite.response && (
-            <div className="border border-[#e5e5e5] rounded-lg p-4 mb-8">
-              <p className="text-sm text-[#999] mb-2">share this link</p>
-              <p className="text-[#1a1a1a] text-sm break-all font-mono">
+            <div className="border border-[#f5d0d8] rounded-lg p-4 mb-8">
+              <p className="text-sm text-[#c49aa3] mb-2">share this link</p>
+              <p className="text-[#2d2d2d] text-sm break-all font-mono">
                 {process.env.NEXT_PUBLIC_APP_URL ||
                   window?.location?.origin ||
                   ""}
@@ -104,20 +104,20 @@ export default async function ResultPage({ params }: PageProps) {
           <div className="flex gap-3 pt-4">
             <Link
               href="/create"
-              className="flex-1 bg-[#1a1a1a] text-white py-3 rounded-lg font-medium text-center hover:bg-[#333] transition-colors"
+              className="flex-1 bg-[#e53e5f] text-white py-3 rounded-lg font-medium text-center hover:bg-[#d63555] transition-colors"
             >
               Create another
             </Link>
             <Link
               href="/"
-              className="flex-1 border border-[#e5e5e5] text-[#1a1a1a] py-3 rounded-lg font-medium text-center hover:bg-[#f5f5f5] transition-colors"
+              className="flex-1 border border-[#f5d0d8] text-[#2d2d2d] py-3 rounded-lg font-medium text-center hover:bg-white/50 transition-colors"
             >
               Home
             </Link>
           </div>
 
           {!invite.response && (
-            <p className="text-sm text-[#999] mt-8 text-center">
+            <p className="text-sm text-[#c49aa3] mt-8 text-center">
               Bookmark this page to check back later.
             </p>
           )}

@@ -3,36 +3,50 @@
 import { useState } from "react";
 import { ThemeKey } from "@/lib/themes";
 import confetti from "canvas-confetti";
-import {
-  generateGoogleCalendarUrl,
-  generateOutlookUrl,
-  createICSDownloadUrl,
-} from "@/lib/calendar";
 
 interface InviteResponseProps {
   slug: string;
   theme: ThemeKey;
+  senderName?: string | null;
   eventDate?: string | null;
   eventTime?: string | null;
   eventTitle?: string | null;
-  senderName?: string | null;
-  recipientName?: string | null;
 }
 
 export default function InviteResponse({
   slug,
+  senderName,
   eventDate,
   eventTime,
-  eventTitle,
-  senderName,
-  recipientName,
 }: InviteResponseProps) {
   const [isLoading, setIsLoading] = useState(false);
   const [responded, setResponded] = useState(false);
   const [response, setResponse] = useState<string | null>(null);
   const [error, setError] = useState("");
-  const [showCalendarOptions, setShowCalendarOptions] = useState(false);
-  const [wantsCalendar, setWantsCalendar] = useState<boolean | null>(null);
+
+  // For "yes" response - collect email for confirmation
+  const [showEmailPrompt, setShowEmailPrompt] = useState(false);
+  const [recipientEmail, setRecipientEmail] = useState("");
+
+  // For "no" response - confirm they really mean it
+  const [showNoConfirm, setShowNoConfirm] = useState(false);
+
+  const hasEvent = !!eventDate;
+
+  const formattedDate = eventDate
+    ? new Date(eventDate + "T12:00:00").toLocaleDateString("en-US", {
+        weekday: "long",
+        month: "long",
+        day: "numeric",
+      })
+    : null;
+
+  const formattedTime = eventTime
+    ? new Date(`2000-01-01T${eventTime}`).toLocaleTimeString("en-US", {
+        hour: "numeric",
+        minute: "2-digit",
+      })
+    : null;
 
   const triggerConfetti = () => {
     const duration = 2500;
@@ -44,14 +58,14 @@ export default function InviteResponse({
         angle: 60,
         spread: 45,
         origin: { x: 0, y: 0.7 },
-        colors: ["#1a1a1a", "#666", "#999", "#ccc"],
+        colors: ["#e53e5f", "#f472b6", "#fb7185", "#ffffff"],
       });
       confetti({
         particleCount: 2,
         angle: 120,
         spread: 45,
         origin: { x: 1, y: 0.7 },
-        colors: ["#1a1a1a", "#666", "#999", "#ccc"],
+        colors: ["#e53e5f", "#f472b6", "#fb7185", "#ffffff"],
       });
 
       if (Date.now() < end) {
@@ -62,7 +76,10 @@ export default function InviteResponse({
     frame();
   };
 
-  const handleResponse = async (responseType: "yes" | "maybe" | "no") => {
+  const submitResponse = async (
+    responseType: "yes" | "maybe" | "no",
+    email?: string,
+  ) => {
     setIsLoading(true);
     setError("");
 
@@ -70,7 +87,10 @@ export default function InviteResponse({
       const res = await fetch(`/api/invite/${slug}/respond`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ response: responseType }),
+        body: JSON.stringify({
+          response: responseType,
+          recipientEmail: email || null,
+        }),
       });
 
       const data = await res.json();
@@ -81,6 +101,7 @@ export default function InviteResponse({
 
       setResponse(responseType);
       setResponded(true);
+      setShowEmailPrompt(false);
 
       if (responseType === "yes") {
         triggerConfetti();
@@ -92,161 +113,233 @@ export default function InviteResponse({
     }
   };
 
-  const event = eventDate
-    ? {
-        title: eventTitle || "Valentine's Date",
-        date: eventDate,
-        time: eventTime || undefined,
-        description: `Valentine's date${senderName ? ` with ${senderName}` : ""}`,
-      }
-    : null;
-
-  const handleDownloadICS = () => {
-    if (!event) return;
-    const url = createICSDownloadUrl(event);
-    const link = document.createElement("a");
-    link.href = url;
-    link.download = "valentines-date.ics";
-    document.body.appendChild(link);
-    link.click();
-    document.body.removeChild(link);
-    URL.revokeObjectURL(url);
-    setShowCalendarOptions(false);
+  const handleResponse = (responseType: "yes" | "maybe" | "no") => {
+    // If "yes" and there's a date, show email prompt first
+    if (responseType === "yes" && hasEvent) {
+      setResponse("yes");
+      setShowEmailPrompt(true);
+      triggerConfetti();
+    } else if (responseType === "no") {
+      // Show confirmation for "no" - are they sure?
+      setShowNoConfirm(true);
+    } else {
+      submitResponse(responseType);
+    }
   };
 
-  const handleGoogleCalendar = () => {
-    if (!event) return;
-    window.open(generateGoogleCalendarUrl(event), "_blank");
-    setShowCalendarOptions(false);
+  const handleConfirmNo = () => {
+    setShowNoConfirm(false);
+    submitResponse("no");
   };
 
-  const handleOutlook = () => {
-    if (!event) return;
-    window.open(generateOutlookUrl(event), "_blank");
-    setShowCalendarOptions(false);
+  const handleCancelNo = () => {
+    setShowNoConfirm(false);
   };
 
-  if (responded) {
-    const formattedDate = eventDate
-      ? new Date(eventDate + "T12:00:00").toLocaleDateString("en-US", {
-          weekday: "long",
-          month: "long",
-          day: "numeric",
-        })
-      : null;
+  const handleEmailSubmit = (e: React.FormEvent) => {
+    e.preventDefault();
+    submitResponse("yes", recipientEmail);
+  };
 
-    const formattedTime = eventTime
-      ? new Date(`2000-01-01T${eventTime}`).toLocaleTimeString("en-US", {
-          hour: "numeric",
-          minute: "2-digit",
-        })
-      : null;
+  const handleSkipEmail = () => {
+    submitResponse("yes");
+  };
 
+  // Show "No" confirmation - are they sure?
+  if (showNoConfirm) {
     return (
-      <div className="border-t border-[#e5e5e5] pt-8">
-        <p className="text-[#999] text-sm mb-2">you said</p>
-        <h2 className="text-2xl font-serif text-[#1a1a1a] mb-4">
-          {response === "yes" ? "Yes" : response === "maybe" ? "Maybe" : "No"}
+      <div className="border-t border-[#f5d0d8] pt-8">
+        <div className="text-center mb-6">
+          <span className="text-6xl">🧸</span>
+          <p className="text-4xl mt-2">👉👈</p>
+        </div>
+        <h2 className="text-xl font-serif text-[#2d2d2d] mb-3 text-center">
+          Sure ka ba?
         </h2>
-        <p className="text-[#666]">
-          {response === "yes"
-            ? "Nice. They'll be happy to hear that."
-            : response === "maybe"
-              ? "Fair enough. Take your time."
-              : "Respect. Thanks for being upfront."}
+        <p className="text-[#7a5a63] text-center mb-6">
+          Malulungkot ako... baka naman pwede pa?
         </p>
 
-        {/* Calendar options for "yes" response with a date */}
-        {response === "yes" && event && wantsCalendar === null && (
-          <div className="mt-6 border border-[#e5e5e5] rounded-lg p-4">
-            <p className="text-sm text-[#999] mb-1">they suggested</p>
-            <p className="text-[#1a1a1a] font-medium mb-4">
-              {formattedDate}
-              {formattedTime && (
-                <span className="text-[#666]"> at {formattedTime}</span>
-              )}
-            </p>
-            <p className="text-[#666] text-sm mb-4">
-              Want to save this date to your calendar?
-            </p>
-            <div className="flex gap-3">
-              <button
-                onClick={() => setWantsCalendar(true)}
-                className="flex-1 bg-[#1a1a1a] text-white py-3 rounded-lg font-medium hover:bg-[#333] transition-colors"
-              >
-                Yes, add it
-              </button>
-              <button
-                onClick={() => setWantsCalendar(false)}
-                className="flex-1 border border-[#e5e5e5] text-[#666] py-3 rounded-lg font-medium hover:bg-[#f5f5f5] transition-colors"
-              >
-                No thanks
-              </button>
-            </div>
+        {error && (
+          <div className="bg-red-50 text-red-600 px-4 py-3 rounded-lg text-sm mb-4">
+            {error}
           </div>
         )}
 
-        {/* Show calendar options after they agreed */}
-        {response === "yes" && event && wantsCalendar === true && (
-          <div className="mt-6 border border-[#e5e5e5] rounded-lg p-4">
-            <p className="text-sm text-[#999] mb-1">the date</p>
-            <p className="text-[#1a1a1a] font-medium mb-4">
-              {formattedDate}
-              {formattedTime && (
-                <span className="text-[#666]"> at {formattedTime}</span>
-              )}
-            </p>
-
-            <div className="relative">
-              <button
-                onClick={() => setShowCalendarOptions(!showCalendarOptions)}
-                className="w-full bg-[#1a1a1a] text-white py-3 rounded-lg font-medium hover:bg-[#333] transition-colors"
-              >
-                Choose your calendar
-              </button>
-
-              {showCalendarOptions && (
-                <div className="absolute bottom-full left-0 right-0 mb-2 bg-white border border-[#e5e5e5] rounded-lg shadow-lg overflow-hidden z-10">
-                  <button
-                    onClick={handleGoogleCalendar}
-                    className="w-full px-4 py-3 text-left text-[#1a1a1a] hover:bg-[#f5f5f5] transition-colors border-b border-[#e5e5e5]"
-                  >
-                    Google Calendar
-                  </button>
-                  <button
-                    onClick={handleOutlook}
-                    className="w-full px-4 py-3 text-left text-[#1a1a1a] hover:bg-[#f5f5f5] transition-colors border-b border-[#e5e5e5]"
-                  >
-                    Outlook
-                  </button>
-                  <button
-                    onClick={handleDownloadICS}
-                    className="w-full px-4 py-3 text-left text-[#1a1a1a] hover:bg-[#f5f5f5] transition-colors"
-                  >
-                    Download .ics (Apple, others)
-                  </button>
-                </div>
-              )}
-            </div>
-          </div>
-        )}
-
-        {/* Dismissed calendar */}
-        {response === "yes" && event && wantsCalendar === false && (
+        <div className="flex gap-3">
           <button
-            onClick={() => setWantsCalendar(true)}
-            className="mt-4 text-sm text-[#999] hover:text-[#666] transition-colors"
+            onClick={handleCancelNo}
+            disabled={isLoading}
+            className="flex-1 bg-[#e53e5f] text-white py-3 rounded-lg font-medium hover:bg-[#d63555] transition-colors disabled:opacity-40"
           >
-            Changed your mind? Add to calendar →
+            Sige na, Yes na! 💕
           </button>
+          <button
+            onClick={handleConfirmNo}
+            disabled={isLoading}
+            className="flex-1 border border-[#f5d0d8] text-[#7a5a63] py-3 rounded-lg font-medium hover:bg-white/50 transition-colors disabled:opacity-40"
+          >
+            {isLoading ? "..." : "Sorry, No talaga 😢"}
+          </button>
+        </div>
+      </div>
+    );
+  }
+
+  // Show email prompt for "yes" with date
+  if (showEmailPrompt && response === "yes" && hasEvent) {
+    return (
+      <div className="border-t border-[#f5d0d8] pt-8">
+        <div className="text-center mb-4">
+          <span className="text-5xl">🎉</span>
+        </div>
+        <p className="text-[#c49aa3] text-sm mb-2 text-center">you said</p>
+        <h2 className="text-2xl font-serif text-[#e53e5f] mb-4 text-center">
+          Yes!
+        </h2>
+        <p className="text-[#7a5a63] mb-6 text-center">
+          OMG! Sana all! {senderName ? `${senderName}` : "They"}&apos;ll be
+          super kilig! 💕
+        </p>
+
+        <div className="bg-white/60 border border-[#f9a8d4] rounded-lg p-5">
+          <p className="text-[#c49aa3] text-xs uppercase tracking-wider mb-2">
+            {senderName ? `${senderName}'s invitation` : "The date"}
+          </p>
+          <p className="text-[#2d2d2d] font-medium text-lg mb-4">
+            {formattedDate}
+            {formattedTime && (
+              <span className="text-[#7a5a63]"> at {formattedTime}</span>
+            )}
+          </p>
+
+          <form onSubmit={handleEmailSubmit} className="space-y-4">
+            <div>
+              <label className="block text-[#7a5a63] text-sm mb-2">
+                Your email <span className="text-[#c49aa3]">(optional)</span>
+              </label>
+              <input
+                type="email"
+                value={recipientEmail}
+                onChange={(e) => setRecipientEmail(e.target.value)}
+                placeholder="we'll send you a confirmation"
+                className="w-full px-4 py-3 rounded-lg border border-[#f5d0d8] bg-white text-[#2d2d2d] placeholder-[#ddb8c0] focus:outline-none focus:border-[#f9a8d4] transition-colors"
+              />
+            </div>
+
+            {error && (
+              <div className="bg-red-50 text-red-600 px-4 py-3 rounded-lg text-sm">
+                {error}
+              </div>
+            )}
+
+            <div className="flex gap-3 pt-2">
+              <button
+                type="submit"
+                disabled={isLoading}
+                className="flex-1 bg-[#e53e5f] text-white py-3 rounded-lg font-medium hover:bg-[#d63555] transition-colors disabled:opacity-40"
+              >
+                {isLoading
+                  ? "Sending..."
+                  : recipientEmail
+                    ? "Send me confirmation"
+                    : "Done"}
+              </button>
+              {recipientEmail === "" && (
+                <button
+                  type="button"
+                  onClick={handleSkipEmail}
+                  disabled={isLoading}
+                  className="flex-1 border border-[#f5d0d8] text-[#7a5a63] py-3 rounded-lg font-medium hover:bg-white/50 transition-colors disabled:opacity-40"
+                >
+                  Skip
+                </button>
+              )}
+            </div>
+          </form>
+        </div>
+      </div>
+    );
+  }
+
+  // Show final response state
+  if (responded) {
+    return (
+      <div className="border-t border-[#f5d0d8] pt-8">
+        {response === "yes" && (
+          <>
+            <div className="text-center mb-4">
+              <span className="text-5xl">💕</span>
+            </div>
+            <p className="text-[#c49aa3] text-sm mb-2 text-center">you said</p>
+            <h2 className="text-2xl font-serif text-[#e53e5f] mb-4 text-center">
+              Yes!
+            </h2>
+            <p className="text-[#7a5a63] text-center">
+              Sana all may jowa this Valentine&apos;s! 🥰
+            </p>
+          </>
+        )}
+
+        {response === "maybe" && (
+          <>
+            <div className="text-center mb-4">
+              <span className="text-5xl">🥺</span>
+            </div>
+            <p className="text-[#c49aa3] text-sm mb-2 text-center">you said</p>
+            <h2 className="text-2xl font-serif text-[#2d2d2d] mb-4 text-center">
+              Maybe
+            </h2>
+            <p className="text-[#7a5a63] text-center mb-4">
+              Undecided ka pa ba? No worries!
+            </p>
+            <p className="text-[#c49aa3] text-sm text-center">
+              Pwede mo pa to balikan mamaya ha... 👀
+            </p>
+          </>
+        )}
+
+        {response === "no" && (
+          <>
+            <div className="text-center mb-4">
+              <span className="text-5xl">😢</span>
+            </div>
+            <p className="text-[#c49aa3] text-sm mb-2 text-center">you said</p>
+            <h2 className="text-2xl font-serif text-[#2d2d2d] mb-4 text-center">
+              No
+            </h2>
+            <p className="text-[#7a5a63] text-center">
+              Ouch. Pero okay lang, salamat sa honesty! 🙏
+            </p>
+          </>
+        )}
+
+        {response === "yes" && hasEvent && (
+          <div className="mt-6 bg-white/60 border border-[#f9a8d4] rounded-lg p-5">
+            <p className="text-[#c49aa3] text-xs uppercase tracking-wider mb-2">
+              {senderName ? `Your date with ${senderName}` : "The date"}
+            </p>
+            <p className="text-[#2d2d2d] font-medium text-lg">
+              {formattedDate}
+              {formattedTime && (
+                <span className="text-[#7a5a63]"> at {formattedTime}</span>
+              )}
+            </p>
+            {recipientEmail && (
+              <p className="text-[#c49aa3] text-sm mt-2">
+                ✓ Confirmation sent to {recipientEmail}
+              </p>
+            )}
+          </div>
         )}
       </div>
     );
   }
 
+  // Show initial response buttons
   return (
-    <div className="border-t border-[#e5e5e5] pt-8">
-      <p className="text-[#999] text-sm mb-4">what&apos;s your answer?</p>
+    <div className="border-t border-[#f5d0d8] pt-8">
+      <p className="text-[#c49aa3] text-sm mb-4">what&apos;s your answer?</p>
 
       {error && (
         <div className="bg-red-50 text-red-600 px-4 py-3 rounded-lg text-sm mb-4">
@@ -258,21 +351,21 @@ export default function InviteResponse({
         <button
           onClick={() => handleResponse("yes")}
           disabled={isLoading}
-          className="flex-1 bg-[#1a1a1a] text-white py-3 rounded-lg font-medium hover:bg-[#333] transition-colors disabled:opacity-40"
+          className="flex-1 bg-[#e53e5f] text-white py-3 rounded-lg font-medium hover:bg-[#d63555] transition-colors disabled:opacity-40"
         >
           Yes
         </button>
         <button
           onClick={() => handleResponse("maybe")}
           disabled={isLoading}
-          className="flex-1 border border-[#e5e5e5] text-[#1a1a1a] py-3 rounded-lg font-medium hover:bg-[#f5f5f5] transition-colors disabled:opacity-40"
+          className="flex-1 border border-[#f5d0d8] text-[#2d2d2d] py-3 rounded-lg font-medium hover:bg-white/50 transition-colors disabled:opacity-40"
         >
           Maybe
         </button>
         <button
           onClick={() => handleResponse("no")}
           disabled={isLoading}
-          className="flex-1 border border-[#e5e5e5] text-[#999] py-3 rounded-lg font-medium hover:bg-[#f5f5f5] transition-colors disabled:opacity-40"
+          className="flex-1 border border-[#f5d0d8] text-[#c49aa3] py-3 rounded-lg font-medium hover:bg-white/50 transition-colors disabled:opacity-40"
         >
           No
         </button>
