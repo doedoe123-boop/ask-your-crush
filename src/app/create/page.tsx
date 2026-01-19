@@ -1,7 +1,12 @@
 "use client";
 
 import { useState } from "react";
-import { themes, ThemeKey, templateMessages } from "@/lib/themes";
+import {
+  themes,
+  ThemeKey,
+  templateMessages,
+  sampleMessages,
+} from "@/lib/themes";
 import Link from "next/link";
 import Balloons from "@/components/Balloons";
 
@@ -20,6 +25,7 @@ export default function CreatePage() {
   } | null>(null);
   const [error, setError] = useState("");
   const [copied, setCopied] = useState<string | null>(null);
+  const [showMessagePicker, setShowMessagePicker] = useState(false);
 
   const handleTemplateSelect = (templateTheme: ThemeKey) => {
     setTheme(templateTheme);
@@ -78,19 +84,19 @@ export default function CreatePage() {
 
   if (createdInvite) {
     return (
-      <div className="min-h-screen bg-[#FFF8F0] px-6 py-12 relative overflow-hidden">
+      <div className="min-h-screen bg-[#FFF0F3] px-6 py-12 relative overflow-hidden">
         <Balloons />
         <div className="max-w-md mx-auto relative z-10">
           <div className="mb-8">
-            <p className="text-[#666] text-sm mb-1">done!</p>
-            <h1 className="text-2xl font-serif text-[#1a1a1a]">
+            <p className="text-[#b07d8a] text-sm mb-1">done!</p>
+            <h1 className="text-2xl font-serif text-[#2d2d2d]">
               Your link is ready
             </h1>
           </div>
 
           <div className="space-y-6">
             <div>
-              <label className="block text-xs uppercase tracking-wider text-[#999] mb-2">
+              <label className="block text-xs uppercase tracking-wider text-[#c49aa3] mb-2">
                 Send this to them
               </label>
               <div className="flex gap-2">
@@ -98,13 +104,13 @@ export default function CreatePage() {
                   type="text"
                   readOnly
                   value={createdInvite.inviteUrl}
-                  className="flex-1 bg-white border border-[#e5e5e5] rounded-lg px-3 py-2.5 text-sm text-[#1a1a1a] font-mono"
+                  className="flex-1 bg-white border border-[#f5d0d8] rounded-lg px-3 py-2.5 text-sm text-[#2d2d2d] font-mono"
                 />
                 <button
                   onClick={() =>
                     copyToClipboard(createdInvite.inviteUrl, "invite")
                   }
-                  className="bg-[#1a1a1a] text-white px-4 py-2.5 rounded-lg text-sm hover:bg-[#333] transition-colors"
+                  className="bg-[#e53e5f] text-white px-4 py-2.5 rounded-lg text-sm hover:bg-[#d63555] transition-colors"
                 >
                   {copied === "invite" ? "Copied" : "Copy"}
                 </button>
@@ -115,7 +121,7 @@ export default function CreatePage() {
                 href={createdInvite.inviteUrl}
                 target="_blank"
                 rel="noopener noreferrer"
-                className="flex-1 text-center border border-[#1a1a1a] text-[#1a1a1a] px-4 py-3 rounded-lg hover:bg-[#1a1a1a] hover:text-white transition-colors"
+                className="flex-1 text-center border border-[#e53e5f] text-[#e53e5f] px-4 py-3 rounded-lg hover:bg-[#e53e5f] hover:text-white transition-colors"
               >
                 Preview it
               </a>
@@ -130,7 +136,7 @@ export default function CreatePage() {
                   setEventDate("");
                   setEventTime("");
                 }}
-                className="flex-1 text-[#999] px-4 py-3 rounded-lg hover:text-[#666] transition-colors"
+                className="flex-1 text-[#c49aa3] px-4 py-3 rounded-lg hover:text-[#b07d8a] transition-colors"
               >
                 Make another
               </button>
@@ -142,21 +148,21 @@ export default function CreatePage() {
   }
 
   return (
-    <div className="min-h-screen bg-[#FFF8F0] px-6 py-12 relative overflow-hidden">
+    <div className="min-h-screen bg-[#FFF0F3] px-6 py-12 relative overflow-hidden">
       <Balloons />
       <div className="max-w-xl mx-auto relative z-10">
         {/* Header */}
         <div className="mb-10">
           <Link
             href="/"
-            className="text-[#999] text-sm hover:text-[#666] transition-colors"
+            className="text-[#c49aa3] text-sm hover:text-[#b07d8a] transition-colors"
           >
             ← back
           </Link>
-          <h1 className="text-2xl font-serif text-[#1a1a1a] mt-4">
+          <h1 className="text-2xl font-serif text-[#2d2d2d] mt-4">
             Write your message
           </h1>
-          <p className="text-[#666] mt-1">
+          <p className="text-[#7a5a63] mt-1">
             Pick a vibe and say what you want to say.
           </p>
         </div>
@@ -164,7 +170,7 @@ export default function CreatePage() {
         <form onSubmit={handleSubmit} className="space-y-8">
           {/* Vibe Selection */}
           <div>
-            <label className="block text-xs uppercase tracking-wider text-[#999] mb-3">
+            <label className="block text-xs uppercase tracking-wider text-[#c49aa3] mb-3">
               Pick a vibe
             </label>
             <div className="flex gap-2">
@@ -175,8 +181,8 @@ export default function CreatePage() {
                   onClick={() => handleTemplateSelect(themeKey)}
                   className={`flex-1 py-3 px-4 rounded-lg text-sm transition-all ${
                     theme === themeKey
-                      ? "bg-[#1a1a1a] text-white"
-                      : "bg-white border border-[#e5e5e5] text-[#666] hover:border-[#ccc]"
+                      ? "bg-[#e53e5f] text-white"
+                      : "bg-white border border-[#f5d0d8] text-[#7a5a63] hover:border-[#f9a8d4]"
                   }`}
                 >
                   {themes[themeKey].name}
@@ -187,9 +193,9 @@ export default function CreatePage() {
 
           {/* Their Name */}
           <div>
-            <label className="block text-xs uppercase tracking-wider text-[#999] mb-2">
+            <label className="block text-xs uppercase tracking-wider text-[#c49aa3] mb-2">
               Their name{" "}
-              <span className="normal-case text-[#ccc]">(optional)</span>
+              <span className="normal-case text-[#ddb8c0]">(optional)</span>
             </label>
             <input
               type="text"
@@ -197,32 +203,74 @@ export default function CreatePage() {
               onChange={(e) => setRecipientName(e.target.value)}
               placeholder="leave blank to keep it anonymous"
               maxLength={50}
-              className="w-full px-4 py-3 rounded-lg border border-[#e5e5e5] bg-white text-[#1a1a1a] placeholder-[#ccc] focus:outline-none focus:border-[#999] transition-colors"
+              className="w-full px-4 py-3 rounded-lg border border-[#f5d0d8] bg-white text-[#2d2d2d] placeholder-[#ddb8c0] focus:outline-none focus:border-[#f9a8d4] transition-colors"
             />
           </div>
 
           {/* Message */}
           <div>
-            <label className="block text-xs uppercase tracking-wider text-[#999] mb-2">
-              Your message
-            </label>
+            <div className="flex items-center justify-between mb-2">
+              <label className="block text-xs uppercase tracking-wider text-[#c49aa3]">
+                Your message
+              </label>
+              <button
+                type="button"
+                onClick={() => setShowMessagePicker(!showMessagePicker)}
+                className="text-xs text-[#e53e5f] hover:text-[#d63555] transition-colors flex items-center gap-1"
+              >
+                <span>✨</span>
+                {showMessagePicker ? "Hide suggestions" : "Need inspiration?"}
+              </button>
+            </div>
+
+            {/* Message Picker */}
+            {showMessagePicker && (
+              <div className="mb-3 p-4 bg-white/80 border border-[#f9a8d4] rounded-lg space-y-2">
+                <p className="text-xs text-[#c49aa3] mb-3">
+                  Pick a message for the{" "}
+                  <span className="font-medium">{themes[theme].name}</span>{" "}
+                  vibe:
+                </p>
+                {sampleMessages[theme].map((sampleMsg, index) => (
+                  <button
+                    key={index}
+                    type="button"
+                    onClick={() => {
+                      setMessage(sampleMsg);
+                      setShowMessagePicker(false);
+                    }}
+                    className={`w-full text-left p-3 rounded-lg text-sm transition-all ${
+                      message === sampleMsg
+                        ? "bg-[#e53e5f] text-white"
+                        : "bg-[#FFF0F3] text-[#7a5a63] hover:bg-[#f9a8d4]/30 border border-[#f5d0d8]"
+                    }`}
+                  >
+                    {sampleMsg.replace(
+                      /\{\{name\}\}/g,
+                      recipientName || "[name]",
+                    )}
+                  </button>
+                ))}
+              </div>
+            )}
+
             <textarea
               value={message}
               onChange={(e) => setMessage(e.target.value)}
               rows={4}
               maxLength={500}
-              className="w-full px-4 py-3 rounded-lg border border-[#e5e5e5] bg-white text-[#1a1a1a] placeholder-[#ccc] focus:outline-none focus:border-[#999] transition-colors resize-none leading-relaxed"
+              className="w-full px-4 py-3 rounded-lg border border-[#f5d0d8] bg-white text-[#2d2d2d] placeholder-[#ddb8c0] focus:outline-none focus:border-[#f9a8d4] transition-colors resize-none leading-relaxed"
             />
-            <div className="text-right text-xs text-[#ccc] mt-1">
+            <div className="text-right text-xs text-[#ddb8c0] mt-1">
               {message.length}/500
             </div>
           </div>
 
           {/* Your Name */}
           <div>
-            <label className="block text-xs uppercase tracking-wider text-[#999] mb-2">
+            <label className="block text-xs uppercase tracking-wider text-[#c49aa3] mb-2">
               Sign it as{" "}
-              <span className="normal-case text-[#ccc]">(optional)</span>
+              <span className="normal-case text-[#ddb8c0]">(optional)</span>
             </label>
             <input
               type="text"
@@ -230,70 +278,74 @@ export default function CreatePage() {
               onChange={(e) => setSenderName(e.target.value)}
               placeholder="your name, a nickname, or leave blank"
               maxLength={50}
-              className="w-full px-4 py-3 rounded-lg border border-[#e5e5e5] bg-white text-[#1a1a1a] placeholder-[#ccc] focus:outline-none focus:border-[#999] transition-colors"
+              className="w-full px-4 py-3 rounded-lg border border-[#f5d0d8] bg-white text-[#2d2d2d] placeholder-[#ddb8c0] focus:outline-none focus:border-[#f9a8d4] transition-colors"
             />
           </div>
 
           {/* Email for notification */}
           <div>
-            <label className="block text-xs uppercase tracking-wider text-[#999] mb-2">
+            <label className="block text-xs uppercase tracking-wider text-[#c49aa3] mb-2">
               Your email{" "}
-              <span className="normal-case text-[#ccc]">(to get notified)</span>
+              <span className="normal-case text-[#ddb8c0]">
+                (to get notified)
+              </span>
             </label>
             <input
               type="email"
               value={senderEmail}
               onChange={(e) => setSenderEmail(e.target.value)}
               placeholder="we'll email you when they respond"
-              className="w-full px-4 py-3 rounded-lg border border-[#e5e5e5] bg-white text-[#1a1a1a] placeholder-[#ccc] focus:outline-none focus:border-[#999] transition-colors"
+              className="w-full px-4 py-3 rounded-lg border border-[#f5d0d8] bg-white text-[#2d2d2d] placeholder-[#ddb8c0] focus:outline-none focus:border-[#f9a8d4] transition-colors"
             />
           </div>
 
           {/* Proposed Date */}
           <div>
-            <label className="block text-xs uppercase tracking-wider text-[#999] mb-2">
+            <label className="block text-xs uppercase tracking-wider text-[#c49aa3] mb-2">
               Propose a date{" "}
-              <span className="normal-case text-[#ccc]">(optional)</span>
+              <span className="normal-case text-[#ddb8c0]">(optional)</span>
             </label>
             <div className="flex gap-3">
               <input
                 type="date"
                 value={eventDate}
                 onChange={(e) => setEventDate(e.target.value)}
-                className="flex-1 px-4 py-3 rounded-lg border border-[#e5e5e5] bg-white text-[#1a1a1a] focus:outline-none focus:border-[#999] transition-colors"
+                className="flex-1 px-4 py-3 rounded-lg border border-[#f5d0d8] bg-white text-[#2d2d2d] focus:outline-none focus:border-[#f9a8d4] transition-colors"
               />
               <input
                 type="time"
                 value={eventTime}
                 onChange={(e) => setEventTime(e.target.value)}
                 placeholder="Time"
-                className="w-32 px-4 py-3 rounded-lg border border-[#e5e5e5] bg-white text-[#1a1a1a] focus:outline-none focus:border-[#999] transition-colors"
+                className="w-32 px-4 py-3 rounded-lg border border-[#f5d0d8] bg-white text-[#2d2d2d] focus:outline-none focus:border-[#f9a8d4] transition-colors"
               />
             </div>
-            <p className="text-xs text-[#ccc] mt-2">
+            <p className="text-xs text-[#ddb8c0] mt-2">
               If they say yes, they can add it to their calendar
             </p>
           </div>
 
           {/* Preview */}
-          <div className="border-t border-[#e5e5e5] pt-8">
-            <label className="block text-xs uppercase tracking-wider text-[#999] mb-3">
+          <div className="border-t border-[#f5d0d8] pt-8">
+            <label className="block text-xs uppercase tracking-wider text-[#c49aa3] mb-3">
               Preview
             </label>
-            <div className="bg-white border border-[#e5e5e5] rounded-xl p-6">
-              <p className="text-[#1a1a1a] leading-relaxed whitespace-pre-wrap">
+            <div className="bg-white border border-[#f5d0d8] rounded-xl p-6">
+              <p className="text-[#2d2d2d] leading-relaxed whitespace-pre-wrap">
                 {getPreviewMessage() || "Your message will show here..."}
               </p>
               {senderName && (
-                <p className="text-[#999] mt-4 text-sm">— {senderName}</p>
+                <p className="text-[#c49aa3] mt-4 text-sm">— {senderName}</p>
               )}
-              <div className="flex gap-2 mt-6 pt-4 border-t border-[#f0f0f0]">
-                <span className="text-xs text-[#ccc]">They&apos;ll see:</span>
-                <span className="text-xs text-[#1a1a1a] font-medium">Yes</span>
-                <span className="text-xs text-[#1a1a1a] font-medium">
+              <div className="flex gap-2 mt-6 pt-4 border-t border-[#fce7f3]">
+                <span className="text-xs text-[#ddb8c0]">
+                  They&apos;ll see:
+                </span>
+                <span className="text-xs text-[#2d2d2d] font-medium">Yes</span>
+                <span className="text-xs text-[#2d2d2d] font-medium">
                   Maybe
                 </span>
-                <span className="text-xs text-[#1a1a1a] font-medium">No</span>
+                <span className="text-xs text-[#2d2d2d] font-medium">No</span>
               </div>
             </div>
           </div>
@@ -307,7 +359,7 @@ export default function CreatePage() {
           <button
             type="submit"
             disabled={isLoading || !message.trim()}
-            className="w-full bg-[#1a1a1a] text-white py-4 rounded-lg font-medium transition-all hover:bg-[#333] disabled:opacity-40 disabled:cursor-not-allowed"
+            className="w-full bg-[#e53e5f] text-white py-4 rounded-lg font-medium transition-all hover:bg-[#d63555] disabled:opacity-40 disabled:cursor-not-allowed"
           >
             {isLoading ? "Creating..." : "Get my link"}
           </button>
